@@ -1,8 +1,7 @@
 import cv2 as cv
-from matplotlib.pyplot import contour
 import numpy as np
 
-caminho = 'dataset/image7.jpg'
+caminho = 'dataset/image9.jpg'
 
 def fillHoles(src):
     contours,hierarchy = cv.findContours(src, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE)
@@ -30,6 +29,11 @@ def createImgs(src):
 
 img = cv.imread(caminho)
 img = cv.blur(img,(3,3))
+
+th1 = 60
+th2 = th1 * 0.4
+edges = cv.Canny(img, th1, th2)
+
 gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
 th = cv.adaptiveThreshold(gray, 255, cv.ADAPTIVE_THRESH_MEAN_C, cv.THRESH_BINARY, 17, -3)
@@ -44,6 +48,8 @@ for line in lines:
 	x1, y1, x2, y2 = line[0]
 	cv.line(black, (x1, y1), (x2, y2), (255,255,255), 3)
 
-black = fillHoles(black)
+black = fillHoles(cv.bitwise_or(black,edges))
+black = cv.morphologyEx(black, cv.MORPH_ERODE,cv.getStructuringElement( cv.MORPH_RECT, ( 6, 6) ))
+
 black = eliminateCont(black)
 createImgs(black)
